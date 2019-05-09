@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="apple-touch-icon" href="/img/icons/apple-touch-icon-180x180.png" sizes="180x180">
+    <meta name="msapplication-config" content="/img/icons/browserconfig.xml">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/css/materialize.min.css">
+    <link rel="manifest" href="/manifest.json">
+    <title>Pulse Metronome</title>
+</head>
+<body style="background: #ddd;">
+    
+    <nav>
+        <div class="nav-wrapper" style="background: #ffe1c4;">
+            <a href="#" class="brand-logo center">PULSE METRONOME</a>
+        </div>
+    </nav>
+
+    <main style="padding: 7px; text-align: center;">
+        <div class="card" style="padding: 7px;">
+            <p style="font-size: 25px;">Tempo: <span id="show_bpm">60</span> bpm</p>
+            <input onchange="setBPM(this.value)" type="range" id="bpm" min="30" max="160" value="60" step="5" />
+            <button id="play" class="btn-floating btn-large waves-effect waves-light yellow"><i class="material-icons">pause</i></button>
+            <button id="stop" class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">stop</i></button>
+            <p>Much 💕 from &lt;Jesse /&gt;</p>
+        </div>
+    </main>
+
+    <script src="/js/materialize.min.js"></script>
+
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+        .register('/sw.js')
+        .then(_ => console.log('service worker registered!'))
+}
+</script>
+<script>
+let currentBPM = 60
+
+let timer
+
+const $showBPM = document.querySelector(`#show_bpm`)
+const $play = document.querySelector(`#play`)
+const $stop = document.querySelector(`#stop`)
+
+const setBPM = newBPM => {
+    currentBPM = newBPM
+    $showBPM.innerHTML = currentBPM
+}
+
+const beep = _ => navigator.vibrate(100)
+
+$stop.addEventListener('click', _ => {
+    clearInterval(timer)
+})
+
+$play.addEventListener('click', _ => {
+    clearInterval(timer)
+    timer = setInterval(beep, 1000/(Math.round(currentBPM/60)))
+})
+</script>
+</body>
+</html>
