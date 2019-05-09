@@ -9,6 +9,98 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="/css/materialize.min.css">
     <link rel="manifest" href="/manifest.json">
+    <style>
+        .pulsating-circle {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        -webkit-transform: translateX(-50%) translateY(-50%);
+                transform: translateX(-50%) translateY(-50%);
+        width: 30px;
+        height: 30px;
+        }
+        .pulsating-circle:before {
+        content: '';
+        position: relative;
+        display: block;
+        width: 300%;
+        height: 300%;
+        box-sizing: border-box;
+        margin-left: -100%;
+        margin-top: -100%;
+        border-radius: 45px;
+        background-color: #01a4e9;
+        
+        }
+        .pulsating-circle:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+        
+        }
+
+        @-webkit-keyframes pulse-ring {
+        0% {
+            -webkit-transform: scale(0.33);
+                    transform: scale(0.33);
+        }
+        80%, 100% {
+            opacity: 0;
+        }
+        }
+        .pulsating-circle.animating:before {
+-webkit-animation: pulse-ring 1000ms cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+                animation: pulse-ring 1000ms cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        .pulsating-circle.animating:after {
+-webkit-animation: pulse-dot 1000ms cubic-bezier(0.455, 0.03, 0.515, 0.955) -0.4s infinite;
+                animation: pulse-dot 1000ms cubic-bezier(0.455, 0.03, 0.515, 0.955) -0.4s infinite;
+        }
+        @keyframes pulse-ring {
+        0% {
+            -webkit-transform: scale(0.33);
+                    transform: scale(0.33);
+        }
+        80%, 100% {
+            opacity: 0;
+        }
+        }
+        @-webkit-keyframes pulse-dot {
+        0% {
+            -webkit-transform: scale(0.8);
+                    transform: scale(0.8);
+        }
+        50% {
+            -webkit-transform: scale(1);
+                    transform: scale(1);
+        }
+        100% {
+            -webkit-transform: scale(0.8);
+                    transform: scale(0.8);
+        }
+        }
+        @keyframes pulse-dot {
+        0% {
+            -webkit-transform: scale(0.8);
+                    transform: scale(0.8);
+        }
+        50% {
+            -webkit-transform: scale(1);
+                    transform: scale(1);
+        }
+        100% {
+            -webkit-transform: scale(0.8);
+                    transform: scale(0.8);
+        }
+        }
+    </style>
     <title>Pulse Metronome</title>
 </head>
 <body style="background: #ddd;">
@@ -25,6 +117,11 @@
             <input onchange="setBPM(this.value)" type="range" id="bpm" min="30" max="160" value="60" step="5" />
             <button id="play" class="btn-floating btn-large waves-effect waves-light yellow"><i class="material-icons">pause</i></button>
             <button id="stop" class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">stop</i></button>
+        </div>
+        <div class="card" style="height: 100px; padding: 7px;">
+            <div id="pca" class="pulsating-circle" data-dur="1" style="animation-duration: 1000ms;"></div>
+        </div>
+        <div class="card" style="padding: 7px;">
             <p>Much 💕 from &lt;Jesse /&gt;</p>
         </div>
     </main>
@@ -46,16 +143,29 @@ let timer
 const $showBPM = document.querySelector(`#show_bpm`)
 const $play = document.querySelector(`#play`)
 const $stop = document.querySelector(`#stop`)
+const $pca = document.querySelector(`#pca`)
 
 const setBPM = newBPM => {
     currentBPM = newBPM
     $showBPM.innerHTML = currentBPM
 }
 
-const beep = _ => navigator.vibrate(100)
+const animatePulse = _ => {
+    $pca.classList.add('animating')
+    $pca.style.animationDelay = `${1000/(Math.round(currentBPM/60))}ms`
+    document.styleSheets[2].addRule('.pulsating-circle.animating:before', `animation-duration: ${1000 / (Math.round(currentBPM / 60))}ms;`);
+    document.styleSheets[2].addRule('.pulsating-circle.animating:after', `animation-duration: ${1000 / (Math.round(currentBPM / 60))}ms;`);
+    $pca.addEventListener('animationend', _ => $pca.classList.remove('animating'))
+}
+
+const beep = _ => {
+    navigator.vibrate(100)
+    animatePulse()
+}
 
 $stop.addEventListener('click', _ => {
     clearInterval(timer)
+    $pca.classList.remove('animating')
 })
 
 $play.addEventListener('click', _ => {
